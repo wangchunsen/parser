@@ -1,0 +1,15 @@
+[ {
+  "id" : "parser/compile",
+  "compilerVersion" : "0.12.0-RC1",
+  "compilerArguments" : [ ],
+  "sourceDirectories" : [ "/Users/cswang/projects/scala/parser/src/main/scala-0.12", "/Users/cswang/projects/scala/parser/src/main/scala", "/Users/cswang/projects/scala/parser/src/main/java", "/Users/cswang/projects/scala/parser/target/scala-0.12/src_managed/main" ],
+  "dependencyClasspath" : [ "/Users/cswang/.ivy2/cache/ch.epfl.lamp/scala-library/jars/scala-library-0.12.0-RC1.jar", "/Users/cswang/.ivy2/cache/ch.epfl.lamp/dotty-library_0.12/jars/dotty-library_0.12-0.12.0-RC1.jar", "/Users/cswang/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.12.8.jar" ],
+  "classDirectory" : "/Users/cswang/projects/scala/parser/target/scala-0.12/classes"
+}, {
+  "id" : "parser/test",
+  "compilerVersion" : "0.12.0-RC1",
+  "compilerArguments" : [ ],
+  "sourceDirectories" : [ "/Users/cswang/projects/scala/parser/src/test/scala-0.12", "/Users/cswang/projects/scala/parser/src/test/scala", "/Users/cswang/projects/scala/parser/src/test/java", "/Users/cswang/projects/scala/parser/target/scala-0.12/src_managed/test" ],
+  "dependencyClasspath" : [ "/Users/cswang/projects/scala/parser/target/scala-0.12/classes", "/Users/cswang/.ivy2/cache/ch.epfl.lamp/scala-library/jars/scala-library-0.12.0-RC1.jar", "/Users/cswang/.ivy2/cache/ch.epfl.lamp/dotty-library_0.12/jars/dotty-library_0.12-0.12.0-RC1.jar", "/Users/cswang/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.12.8.jar", "/Users/cswang/.ivy2/cache/org.scalatest/scalatest_2.12/bundles/scalatest_2.12-3.0.5.jar", "/Users/cswang/.ivy2/cache/org.scalactic/scalactic_2.12/bundles/scalactic_2.12-3.0.5.jar", "/Users/cswang/.ivy2/cache/ch.epfl.lamp/scala-reflect/jars/scala-reflect-0.12.0-RC1.jar", "/Users/cswang/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.12.8.jar", "/Users/cswang/.ivy2/cache/org.scala-lang.modules/scala-xml_2.12/bundles/scala-xml_2.12-1.0.6.jar" ],
+  "classDirectory" : "/Users/cswang/projects/scala/parser/target/scala-0.12/test-classes"
+} ]
