@@ -2,11 +2,11 @@ package csw.parser
 
 import csw.parser.Res._
 
+import scala.collection.immutable.NumericRange
 import scala.language.implicitConversions
 
-trait Predef {
-
-  implicit def matchStringParser(str: String): PUnit = sequenceParser(str.toCharArray)
+trait ParserPredef {
+  implicit def stringParser(str: String): PUnit = sequenceParser(str.toCharArray)
 
   def sequenceParser(sequence: Array[Char]): PUnit =
     (context: Content, index: ContentIndex) => {
@@ -20,18 +20,8 @@ trait Predef {
 
   implicit def charParser(expectChar: Char): PUnit = sequenceParser(Array(expectChar))
 
-  def sequencePredicate(sequence: Array[Char]): Predicate = {
-    (context: Content, index: ContentIndex) => {
-      val (_, charCount) = context.`while`((char, index, _) => {
-        index < sequence.length && sequence(index) == char
-      }, index)
-      charCount == sequence.length
-    }
-  }
 
-  implicit def stringPredicate(str: String): Predicate = sequencePredicate(str.toCharArray)
-
-  val End: PUnit = (ct: Content, index: ContentIndex) => {
+  val end: PUnit = (ct: Content, index: ContentIndex) => {
     if (ct.isEnd(index)) Success(index, ())
     else Fail(index, s"expected end at ${ct.display(index)}")
   }
@@ -51,6 +41,8 @@ trait Predef {
     }
   }
 
+  def matchAll: PUnit = (ct, _) => Success(ct.end, ())
+
   /**
     * Match all the characters while the function not return false
     *
@@ -68,7 +60,7 @@ trait Predef {
       Success(newCur, ())
     } else (ct, index) => {
       val (newCur, _) = ct.`while`((c, index, contentIndex) => {
-        (limit < 0 || limit < index) &&
+        (limit < 0 || index < limit) &&
           fun(c) &&
           (pre.isEmpty || !pre.get(ct, contentIndex))
       }, index)
@@ -76,10 +68,50 @@ trait Predef {
     }
 
 
-  def charsWhileIn(chars: Seq[Char]*): PUnit = charsWhileInWithLimit(chars: _*)(-1)
+  def charsWhileIn(chars: Seq[Char]*): PUnit = charsWhile(c => chars.exists(_.contains(c)))
+
+  def charsWhileIn(chars: String): PUnit = {
+    val range: Parser[NumericRange[Char]] =
+      (anyChar.cap ~ "-" ~ anyChar.cap.!!) map (t => {
+        val (start, end) = t._1.charAt(0) -> t._2.charAt(0)
+        start to end
+      }) require(
+        info => info.value.nonEmpty,
+        info => s"Range start bounds should not smaller than end bounds, ${info.value.start} - ${info.value.end}"
+      ) withName "parser range"
+
+
+    val charsSeqParser: Parser[Seq[Seq[Char]]] =
+      (range | anyChar.cap).rep <~ end map { seq =>
+        val ranges: Seq[NumericRange[Char]] =
+          seq.filter(_.isInstanceOf[NumericRange[_]]).asInstanceOf[Seq[NumericRange[Char]]]
+        val listChars: Seq[Char] = seq.filter(_.isInstanceOf[String]).map(_.toString.charAt(0))
+
+        if (listChars.isEmpty) ranges
+        else ranges :+ listChars
+      }
+
+    parse(chars, charsSeqParser) match {
+      case Success(_, s) => charsWhileIn(s: _*)
+      case Fail(_, reason) =>
+        throw new Exception(s"Illegal parameter value $reason")
+      case Error(Fail(_, reason), msg) =>
+        throw new Exception(s"Illegal parameter value $reason, $msg")
+    }
+
+  }
+
+  def charsWhileNotIn(chars: Seq[Char]*): PUnit = charsWhile(c => !chars.exists(_.contains(c)))
 
   def charsWhileInWithLimit(chars: Seq[Char]*)(limit: Int): PUnit =
     charsWhile(c => chars.exists(_.contains(c)), limit)
+
+  /**
+    * Match any exact one char
+    *
+    * @return
+    */
+  def anyChar: PUnit = charsWhile(_ => true, limit = 1).min(1)
 
   def void(content: => Any): PUnit = (_, index) => {
     content
@@ -89,6 +121,8 @@ trait Predef {
   def pass: PUnit = (_, index) => Success(index, ())
 
   def pass[T](value: => T): Parser[T] = (_, index) => Success(index, value)
+
+  def reject[T](reason: => String): Parser[T] = (_, index) => Fail(index, reason)
 
   def error(reason: => String): PUnit = (_, index) => Error(Fail(index, "manual error raised"), reason)
 }

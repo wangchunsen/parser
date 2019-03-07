@@ -11,19 +11,24 @@ object Content {
 
   def apply(str: String): Content = {
     val chars = str.toCharArray
-    val buffer = ArrayBuffer.empty[Int]
-    buffer.append(0)
+    val lineInfoBuffer = ArrayBuffer.empty[Int]
+    lineInfoBuffer.append(0)
     for (i <- 0 until chars.length) {
       if (chars(i) == '\n') {
-        buffer.append(i + 1)
+        lineInfoBuffer.append(i + 1)
       }
     }
 
-    new Content(chars, buffer.toArray)
+    new Content(chars, lineInfoBuffer.toArray, chars.length)
   }
 }
 
-class Content private(private val chars: Array[Char], lineInfo: Array[Int]) {
+class Content private(private val chars: Array[Char],
+                      private val lineInfo: Array[Int],
+                      val end: Int) {
+  def endAt(index: ContentIndex): Content =
+    new Content(chars = chars, lineInfo = lineInfo, end = index)
+
   type ContentIndex = Int
   type Count = Int
 
@@ -48,16 +53,18 @@ class Content private(private val chars: Array[Char], lineInfo: Array[Int]) {
     } getOrElse "unknown"
   }
 
-  def isEnd(index: ContentIndex): Boolean = index >= chars.length
+  def isEnd(index: ContentIndex): Boolean = index >= end
 
 
   /**
     * Search the target char sequence from the content, return the first matched postition.
+    *
     * @param target the target to search
-    * @param index the index to search start from
+    * @param index  the index to search start from
     * @return the first matched index, or -1 if not found
     */
-  def search(target: Array[Char], index: ContentIndex): ContentIndex = CharArrayUtil.search(chars, index, target)
+  def search(target: Array[Char], index: ContentIndex): ContentIndex =
+    CharArrayUtil.search(chars, index, end, target)
 
   /**
     * Loop until function {@link fun} first return false
@@ -73,7 +80,7 @@ class Content private(private val chars: Array[Char], lineInfo: Array[Int]) {
     val offset = index
     var contentIndex = index
 
-    while (contentIndex < chars.length) {
+    while (contentIndex < end) {
       val char = chars(contentIndex)
 
       if (!fun(char, contentIndex - offset, contentIndex)) {
