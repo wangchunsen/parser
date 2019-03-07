@@ -4,7 +4,8 @@ A pure function parser library for general purpose
 Here is a example of parsing html using this library:
 
 ```scala
-type AttrValue = (String, Option[String])
+  type AttrValue = (String, Option[String])
+  
   val voidElements = Array("area", "base", "br", "col", "embed",
     "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr")
 
