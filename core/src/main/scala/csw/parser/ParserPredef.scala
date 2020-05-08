@@ -15,7 +15,7 @@ trait ParserPredef {
       }, index)
       if (charCount == sequence.length)
         Success(newCur, ())
-      else Fail(index, s"expect $sequence at ${context.display(index)}")
+      else Fail(s"Expect [${new String(sequence)}] at ${context.display(index)}")
     }
 
   implicit def charParser(expectChar: Char): PUnit = sequenceParser(Array(expectChar))
@@ -23,7 +23,7 @@ trait ParserPredef {
 
   val end: PUnit = (ct: Content, index: ContentIndex) => {
     if (ct.isEnd(index)) Success(index, ())
-    else Fail(index, s"expected end at ${ct.display(index)}")
+    else Fail(s"expected end at ${ct.display(index)}")
   }
 
   /**
@@ -37,7 +37,7 @@ trait ParserPredef {
     (ct, index) => {
       val targetIndex = ct.search(target, index)
       if (targetIndex >= 0) Success(targetIndex, ())
-      else Fail(targetIndex, s"expect $str to be found from ${ct.display(index)}")
+      else Fail(s"expect $str to be found from ${ct.display(index)}")
     }
   }
 
@@ -53,14 +53,13 @@ trait ParserPredef {
     */
   def charsWhile(fun: Char => Boolean,
                  limit: Int = -1,
-                 pre: Option[Predicate] = None
-                ): Parser[Unit] =
+                 pre: Option[Predicate] = None): Parser[Unit] =
     if (limit < 0 && pre.isEmpty) (ct, index) => {
       val (newCur, _) = ct.`while`((c, _, _) => fun(c), index)
       Success(newCur, ())
     } else (ct, index) => {
-      val (newCur, _) = ct.`while`((c, index, contentIndex) => {
-        (limit < 0 || index < limit) &&
+      val (newCur, _) = ct.`while`((c, count, contentIndex) => {
+        (limit < 0 || count < limit) &&
           fun(c) &&
           (pre.isEmpty || !pre.get(ct, contentIndex))
       }, index)
@@ -75,10 +74,12 @@ trait ParserPredef {
       (anyChar.cap ~ "-" ~ anyChar.cap.!!) map (t => {
         val (start, end) = t._1.charAt(0) -> t._2.charAt(0)
         start to end
-      }) require(
-        info => info.value.nonEmpty,
-        info => s"Range start bounds should not smaller than end bounds, ${info.value.start} - ${info.value.end}"
-      ) withName "parser range"
+      }) require (
+        info =>
+          if (info.value.nonEmpty)
+            Some(s"Range start bounds should not smaller than end bounds, ${info.value.start} - ${info.value.end}")
+          else None
+        ) withName "parser range"
 
 
     val charsSeqParser: Parser[Seq[Seq[Char]]] =
@@ -93,10 +94,8 @@ trait ParserPredef {
 
     parse(chars, charsSeqParser) match {
       case Success(_, s) => charsWhileIn(s: _*)
-      case Fail(_, reason) =>
+      case Fail(reason, _, _) =>
         throw new Exception(s"Illegal parameter value $reason")
-      case Error(Fail(_, reason), msg) =>
-        throw new Exception(s"Illegal parameter value $reason, $msg")
     }
 
   }
@@ -122,7 +121,7 @@ trait ParserPredef {
 
   def pass[T](value: => T): Parser[T] = (_, index) => Success(index, value)
 
-  def reject[T](reason: => String): Parser[T] = (_, index) => Fail(index, reason)
+  def reject[T](reason: => String): Parser[T] = (_, _) => Fail(reason)
 
-  def error(reason: => String): PUnit = (_, index) => Error(Fail(index, "manual error raised"), reason)
+  def error(reason: => String): PUnit = (_, _) => Fail("manual error raised", isError = true)
 }

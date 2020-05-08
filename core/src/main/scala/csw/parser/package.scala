@@ -1,12 +1,21 @@
 package csw
 
-import csw.parser.Res.Success
+import csw.parser.Res.{Fail, Success}
 
 import scala.language.implicitConversions
 
 package object parser extends ParserPredef with PredicatePredef {
   type ContentIndex = Int
   type Parser[+T] = (Content, ContentIndex) => Res[T]
+
+  class NamedParser[T](val name: String, fun: Parser[T]) extends Parser[T] {
+    override def apply(v1: Content, v2: ContentIndex): Res[T] = fun(v1, v2) match {
+      case fail: Fail => fail.copy(stack = (name, v2) :: fail.stack)
+      case s => s
+    }
+
+  }
+
   type PUnit = Parser[Unit]
   type Predicate = (Content, ContentIndex) => Boolean
 

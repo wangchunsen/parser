@@ -16,7 +16,7 @@ class PredefParsersTest extends FreeSpec with Matchers {
       val context = Content("12345")
       val res = parse("12345", parser)
 
-      assert(res.isSuccess)
+      assert(res.isInstanceOf[Success[_]])
       assert(context.isEnd(res.asInstanceOf[Success[_]].index))
     }
   }
@@ -24,7 +24,7 @@ class PredefParsersTest extends FreeSpec with Matchers {
   "For charUntil" - {
     "should return match to the cursor target str first appear" in {
       val res = parse("abcabcabcabcaa123sdfsdf", charsUntil("123"))
-      assert(res.isSuccess)
+      assert(res.isInstanceOf[Success[_]])
       assert(res.asInstanceOf[Success[_]].index == 14)
     }
   }
@@ -32,14 +32,14 @@ class PredefParsersTest extends FreeSpec with Matchers {
   "For char sequence" - {
     "should match if the current string start current position is equal to target string" in {
       val res = parse("123abcd", "123")
-      assert(res.isSuccess)
+      assert(res.isInstanceOf[Success[_]])
       assert(res.asInstanceOf[Success[_]].index == 3)
     }
 
     "should match to context end" in {
       val context = Content("123abcd")
       val res = parse(context, "123abcd")
-      assert(res.isSuccess)
+      assert(res.isInstanceOf[Success[_]])
       assert(context.isEnd(res.asInstanceOf[Success[_]].index))
     }
 
@@ -51,7 +51,7 @@ class PredefParsersTest extends FreeSpec with Matchers {
           |@@@
         """.stripMargin)
       val res = parse(context, "\n123\nabc\n")
-      assert(res.isSuccess)
+      assert(res.isInstanceOf[Success[_]])
       assert(res.asInstanceOf[Success[_]].index == 9)
     }
 
@@ -63,7 +63,7 @@ class PredefParsersTest extends FreeSpec with Matchers {
           |@@@
           |""".stripMargin)
       val res = parse(context, "\n123\nabc\n@@@\n")
-      assert(res.isSuccess)
+      assert(res.isInstanceOf[Success[_]])
       assert(context isEnd res.asInstanceOf[Success[_]].index)
     }
   }
@@ -79,7 +79,7 @@ class PredefParsersTest extends FreeSpec with Matchers {
       val context = Content("123123")
       val value: Res[Seq[String]] = parse(context, cap("123").rep)
 
-      assert(value.isSuccess)
+      assert(value.isInstanceOf[Success[_]])
       assert(value.asInstanceOf[Success[Seq[String]]].value.size == 2)
     }
 
@@ -87,7 +87,7 @@ class PredefParsersTest extends FreeSpec with Matchers {
       val context = Content("123,456,789")
       val value: Res[Seq[String]] = parse(context, charsWhileIn('0' to '9').cap.rep(","))
 
-      assert(value.isSuccess)
+      assert(value.isInstanceOf[Success[_]])
       assert(value.toOption.get == Seq("123", "456", "789"))
     }
   }

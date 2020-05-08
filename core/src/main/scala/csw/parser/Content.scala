@@ -57,7 +57,7 @@ class Content private(private val chars: Array[Char],
 
 
   /**
-    * Search the target char sequence from the content, return the first matched postition.
+    * Search the target char sequence from the content, return the first matched position.
     *
     * @param target the target to search
     * @param index  the index to search start from
@@ -96,8 +96,8 @@ class Content private(private val chars: Array[Char],
     * Compare two cursor and return the String between these two cursors
     * <br>Note:the order of these two cursors are not sensitive
     *
-    * @param c1 the first cursor
-    * @param c2 the other cursor
+    * @param c1 the first cursor, include
+    * @param c2 the other cursor, exclude
     * @return String between the two cursors, start cursor include and end cursor exclude
     */
   def diff(index1: ContentIndex, index2: ContentIndex): String =
